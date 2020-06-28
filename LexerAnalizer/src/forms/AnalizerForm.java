@@ -6,6 +6,7 @@
 package forms;
 
 import lexers.Lexer;
+import lexers.ExpresionLexer;
 import tokens.Tokens;
 import java.io.BufferedReader;
 import java.io.File;
@@ -45,6 +46,8 @@ public class AnalizerForm extends javax.swing.JFrame {
         AceptLbl = new javax.swing.JLabel();
         TitleLbl = new javax.swing.JLabel();
         CancelLbl = new javax.swing.JLabel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        resultText = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -77,31 +80,40 @@ public class AnalizerForm extends javax.swing.JFrame {
             }
         });
 
+        resultText.setEditable(false);
+        resultText.setColumns(20);
+        resultText.setRows(5);
+        jScrollPane2.setViewportView(resultText);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(0, 216, Short.MAX_VALUE)
+                .addGap(0, 0, Short.MAX_VALUE)
                 .addComponent(TitleLbl)
                 .addGap(164, 164, 164))
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(jScrollPane1)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(CancelLbl, javax.swing.GroupLayout.PREFERRED_SIZE, 157, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(AceptLbl, javax.swing.GroupLayout.DEFAULT_SIZE, 175, Short.MAX_VALUE)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(AceptLbl, javax.swing.GroupLayout.PREFERRED_SIZE, 175, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jScrollPane1))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 239, Short.MAX_VALUE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(TitleLbl)
-                .addGap(18, 18, 18)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 384, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 390, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1))
+                .addGap(10, 10, 10)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(AceptLbl, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(CancelLbl, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -113,55 +125,89 @@ public class AnalizerForm extends javax.swing.JFrame {
 
     private void AceptLblMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_AceptLblMouseClicked
         // TODO add your handling code here:
-
+        resultText.setText("");
+        int index = 0;
         for (String line : inputText.getText().split("\\n")) {        
+            index++;
             File file = new File("file.txt");
             PrintWriter write;
             try {
                 write = new PrintWriter(file);
-                write.print(inputText.getText());
+                write.print(line);
                 write.close();
             } catch (FileNotFoundException ex) {
                 Logger.getLogger(AnalizerForm.class.getName()).log(Level.SEVERE, null, ex);
             }
-
-            try {
-                Reader reader = new BufferedReader(new FileReader("file.txt"));
-                Lexer lexer = new Lexer(reader);
-                String result = "";
-                while (true) {
-                    Tokens tokens = lexer.yylex();
-                    if (tokens == null) {
-                        result += "END";
-                        inputText.setText(result);
-                        return;
-                    }
-                    switch (tokens) {
-                        case Suma: case Division: case Multiplicacion: case Resta: case Potencia:
-                            result += tokens + "\n";
-                            break;
-                        case Digito:
-                            result += "Digito \n";
-                            break;
-                        case NewLine:
-                            result += "Expresion ended " + lexer.line + " \n";
-                            break;
-                        case Operacion:
-                            result += "Operación matemática \n";
-                            break;
-                        case ERROR:
-                            result += "Error \n";
-                            break;
-                    }
-                }
-            } catch (FileNotFoundException ex) {
-                Logger.getLogger(AnalizerForm.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-                Logger.getLogger(AnalizerForm.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            resultText.setText(resultText.getText() + "Analizando expresión #" + index + "\n");
+            AnalizeLineDetails();
+            AnalizeLineExpresion(line);
+            resultText.setText(resultText.getText() + "---------------------- \n\n");
         }
     }//GEN-LAST:event_AceptLblMouseClicked
 
+    
+    private void AnalizeLineExpresion(String expresion) {
+        try {
+            Reader reader = new BufferedReader(new FileReader("file.txt"));
+            ExpresionLexer lexer = new ExpresionLexer(reader);
+            int errors = 0;
+            String result = "", errorsDesc = "";
+            while (true) {
+                Tokens tokens = lexer.yylex();
+                if (tokens == null) {
+                    if (errors > 0) {
+                        resultText.setText(resultText.getText() + "La expresión contiene un total de " + errors + " errores \n");
+                        resultText.setText(resultText.getText() + errorsDesc);
+                    } else {
+                        resultText.setText(resultText.getText() + result);
+                    }
+                    return;
+                }
+                switch (tokens) {
+                    case Operacion:
+                        result = "Operaccion matematica valida \n";
+                        break;
+                    case ERROR:
+                        errors++;
+                        int position = expresion.indexOf(lexer.lexeme) + 1;
+                        errorsDesc += "\"" + lexer.lexeme + "\" representa un error, en la posición #" + position + " de la expresión \n";
+                        break;
+                }
+            }
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(AnalizerForm.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(AnalizerForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void AnalizeLineDetails() {
+        try {
+            Reader reader = new BufferedReader(new FileReader("file.txt"));
+            Lexer lexer = new Lexer(reader);
+            Tokens tokens = lexer.yylex();
+            while (tokens != null) {
+                switch (tokens) {
+                    case Suma: case Division: case Multiplicacion: case Resta: case Potencia:
+                        resultText.setText(resultText.getText() + tokens + "\n");
+                        break;
+                    case Digito:
+                        resultText.setText(resultText.getText() + "Digito \n");
+                        break;
+                    case ERROR:
+                        resultText.setText(resultText.getText() + "Error \n");
+                        break;
+                }
+                tokens = lexer.yylex();
+            }
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(AnalizerForm.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(AnalizerForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    
     private void CancelLblMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_CancelLblMouseClicked
         // TODO add your handling code here:
     }//GEN-LAST:event_CancelLblMouseClicked
@@ -210,5 +256,7 @@ public class AnalizerForm extends javax.swing.JFrame {
     private javax.swing.JLabel TitleLbl;
     private javax.swing.JTextArea inputText;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JTextArea resultText;
     // End of variables declaration//GEN-END:variables
 }

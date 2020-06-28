@@ -18,5 +18,6 @@ public enum Tokens {
     Digito,
     Operacion,
     NewLine,
+    None,
     ERROR
 }

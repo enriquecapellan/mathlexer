@@ -16,6 +16,8 @@ public class LexersGenerator {
     public static void main(String[] args) {
         List<String> routes = new ArrayList<>();
         routes.add("D:/Unibe/6t0 Cuatrimestre/Teoria de compiladores/Actividad2/LexerAnalizer/src/Lexers/Lexer.flex");
+        routes.add("D:/Unibe/6t0 Cuatrimestre/Teoria de compiladores/Actividad2/LexerAnalizer/src/Lexers/ExpresionLexer.flex");
+
         
         routes.forEach(route -> generateLexer(route));
     }

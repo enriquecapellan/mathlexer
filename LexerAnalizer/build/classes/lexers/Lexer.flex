@@ -8,7 +8,6 @@ import static tokens.Tokens.*;
 white_space=[ ,\t,\r]+
 %{
     public String lexeme;
-    public int line;
 %}
 %%
 {white_space} {/*Ignore*/}
@@ -17,7 +16,5 @@ white_space=[ ,\t,\r]+
 "-" {return Resta;}
 "*" {return Multiplicacion;}
 "/" {return Division;}
-[0-9] {return Digito;}
-\n {line=yyline; return NewLine;}
-([-+]?[0-9]*\.?[0-9]+[\/\+\-\*\^])+([-+]?[0-9]*\.?[0-9]+) {lexeme=yytext(); return Operacion;}
+[0-9]+ {return Digito;}
  . {lexeme=yytext(); return ERROR;}
