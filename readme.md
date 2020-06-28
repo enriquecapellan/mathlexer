@@ -20,3 +20,5 @@ Los **miembros** de este grupo son:
 * *Rubén Cabreja*: **19-0768**
 * *Luis Liranzo*: **19-0734**
 * *Cristian Almanzar*: **18-1032**
+
+![Captura](https://github.com/enriquecapellan/mathlexer/blob/master/capture.png?raw=true)
